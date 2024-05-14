@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image
+from main import process_video_with_subtitles
 
 # Load logo image
 logo_path = 'logo.webp'  # Adjust this to your local path
@@ -74,6 +75,6 @@ with col2:
 if st.button("Start"):
     if video_file:
         st.write("Processing video...")
-        # Your video processing logic here
+        process_video_with_subtitles(video_file, input_language, output_language, dub)
     else:
         st.error("Please upload a video to start.")
