@@ -5,6 +5,9 @@ import subprocess
 import time
 
 
+import uuid
+import os
+
 def process_video_with_subtitles(video_path, input_lang, output_lang, dub=False):
     """
     Process a video by transcribing, translating subtitles, and optionally dubbing the video.
@@ -15,6 +18,7 @@ def process_video_with_subtitles(video_path, input_lang, output_lang, dub=False)
     output_lang (str): Language code for the translated subtitles.
     dub (bool): If True, the video will be dubbed in the output language.
     """
+    unique_id = uuid.uuid4().hex
     # Transcribe the video and create an SRT file
     audio_file_path = video_path.replace('.mp4', '.wav')  # Convert video file path to audio file path
     srt_path = video_path.replace('.mp4', '.srt')
@@ -58,7 +62,7 @@ def process_video_with_subtitles(video_path, input_lang, output_lang, dub=False)
     
     # Add subtitles to video
     try:
-        subtitled_video_path = video_path.replace('.mp4', f'_subtitled_{output_lang}.mp4')
+        subtitled_video_path = video_path.replace('.mp4', f'_subtitled_{output_lang}_{unique_id}.mp4')
         add_subtitles_to_video(video_path, translated_srt_path, subtitled_video_path)
     except Exception as e:
         print(f"Failed to add subtitles to video: {e}")
@@ -69,3 +73,13 @@ def process_video_with_subtitles(video_path, input_lang, output_lang, dub=False)
         print("Dubbing feature is not implemented yet.")
     
     print(f"Processed video with subtitles is available at {subtitled_video_path}")
+
+    # Clean up intermediate files
+    os.remove(audio_file_path)
+    os.remove(srt_path)
+    os.remove(translated_srt_path)
+
+    return subtitled_video_path
+# Example Usage:
+# process_video_with_subtitles("test.mp4", "English", "Yoruba", dub=False)
+

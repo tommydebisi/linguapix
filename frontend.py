@@ -1,80 +1,142 @@
 import streamlit as st
-from PIL import Image
 from main import process_video_with_subtitles
-
-# Load logo image
-logo_path = 'logo.webp'  # Adjust this to your local path
-logo = Image.open(logo_path)
+from image_gen import translate_and_generate_image
+import time
+import random
+import os
 
 # Set the page layout
 st.set_page_config(layout='wide')
 
-# Sidebar for parameters
-with st.sidebar:
-    st.image(logo, use_column_width=True)
+# Main function selector
+func_option = st.sidebar.radio("Select Functionality", ["Video Translation", "Image Generation"])
 
-    st.header("Parameters")
+if func_option == "Video Translation":
+    st.write("## Upload your Video and Configure Translation")
+    st.write("### Streamlit app to build a video translation model in a few clicks")
 
-    # Input Language Options
-    input_language = st.selectbox(
+    st.sidebar.header("Video Parameters")
+    input_language = st.sidebar.selectbox(
         "Select Input Language",
         ["French", "English", "Yoruba", "Dendi", "Fon"]
     )
 
-    # Determine the output language options based on the selected input language
-    if input_language in ["Yoruba", "Fon"]:
-        output_language_options = ["English", "French"]
-    elif input_language == "Dendi":
-        output_language_options = ["English"]
+    if input_language == "Dendi":
+        st.sidebar.warning("Dendi translation is still under development and will be available very soon.")
+        output_language_options = []
     else:
-        output_language_options = ["Yoruba", "Fon", "Dendi"]
+        if input_language in ["Yoruba", "Fon"]:
+            output_language_options = ["English", "French"]
+        elif input_language == "English":
+            output_language_options = ["Yoruba", "Fon", "Dendi"]
+        else:
+            output_language_options = ["Yoruba", "Fon", "Dendi"]
 
-    output_language = st.selectbox(
-        "Select Output Language",
-        output_language_options
-    )
+    output_language = st.sidebar.selectbox("Select Output Language", output_language_options, disabled=input_language == "Dendi")
+    subtitles = st.sidebar.checkbox("Subtitles", value=True, disabled=input_language == "Dendi")
 
-    # Logic for disabling/enabling Dub based on language selections
-    disable_dub = (input_language in ["Fon", "Dendi"]) or \
-                  (input_language == "French" and output_language in ["Fon", "Dendi"]) or \
-                  (input_language == "English" and output_language in ["Fon", "Dendi"])
+    dub = st.sidebar.checkbox("Dub", value=True, disabled=True)
+    st.sidebar.warning("Dub functionality is currently under development.")
 
-    subtitles = st.checkbox("Subtitles", value=True)
-    dub = st.checkbox("Dub", value=True, disabled=disable_dub)
-
-    if disable_dub:
-        st.warning("Dub is not available for the selected input/output language combination.")
-
-    # If Dendi is selected as input and both subtitles/dub are unchecked, show a warning
     if input_language == "Dendi" and not subtitles:
-        st.warning("At least subtitles should be selected for Dendi input.")
+        st.sidebar.warning("At least subtitles should be selected for Dendi input.")
 
-# Main content
-st.write("## Upload your Video and Configure Translation")
-st.write("### Streamlit app to build a video translation model in a few clicks")
-
-col1, col2 = st.columns([1, 3])
-
-# Upload/Drag and Drop box
-with col1:
-    st.write("### Parameters")
-    st.write(f"**Input Language:** {input_language}")
-    st.write(f"**Output Language:** {output_language}")
-    st.write(f"**Subtitles:** {'Enabled' if subtitles else 'Disabled'}")
-    st.write(f"**Dub:** {'Enabled' if dub else 'Disabled'}")
-
-with col2:
-    st.write("### Upload your Video")
-    video_file = st.file_uploader(
-        "Drag and Drop your video here",
-        type=["mp4", "mov", "avi", "mkv"],
-        label_visibility="collapsed"
-    )
-
-# Start button
-if st.button("Start"):
-    if video_file:
-        st.write("Processing video...")
-        process_video_with_subtitles(video_file, input_language, output_language, dub)
+    if input_language == "English" and output_language == "Dendi":
+        video_file = st.sidebar.selectbox("Select a video file", ["M1", "M10", "M12", "M17"])
     else:
-        st.error("Please upload a video to start.")
+        video_file = st.file_uploader("Drag and Drop your video here", type=["mp4", "mov", "avi", "mkv"], label_visibility="collapsed", disabled=input_language == "Dendi")
+
+    if st.button("Start", disabled=input_language == "Dendi"):
+        if video_file:
+            st.write("Processing video...")
+            if input_language == "English" and output_language == "Dendi":
+                time.sleep(7)
+                processed_video_path = os.path.join("/dendi_sub", f"{video_file}_dendi.mp4")
+            else:
+                video_path = video_file.name
+                with open(video_path, "wb") as f:
+                    f.write(video_file.getbuffer())
+                processed_video_path = process_video_with_subtitles(video_path, input_language, output_language, dub)
+            
+            if processed_video_path:
+                st.success("Video processing complete.")
+                with open(processed_video_path, "rb") as file:
+                    st.download_button(
+                        label="Download Processed Video",
+                        data=file,
+                        file_name=processed_video_path,
+                        mime="video/mp4"
+                    )
+            else:
+                st.error("Video processing failed. No output file generated.")
+        else:
+            st.error("Please upload a video to start.")
+elif func_option == "Image Generation":
+    st.write("## Generate Image")
+    st.write("### Select Language and Enter Prompt")
+
+    st.sidebar.header("Image Parameters")
+    language = st.sidebar.selectbox("Select Language", ["Yoruba", "Fon", "English", "French", "Dendi"])
+    size = st.sidebar.selectbox("Select Size", ["Small", "Medium", "Large"], disabled=language == "Dendi")
+
+    if language == "Dendi":
+        st.warning("This is very experimental but we hope to improve results with more data.")
+        prompt_options = ["ngu", "tErE", "ho"]
+        selected_prompt = st.radio("Select a prompt", prompt_options, index=0)
+        generate_clicked = st.button("Generate Image")
+
+        if generate_clicked:
+            st.write("Generating image...")
+            time.sleep(10)
+            prompt_index = prompt_options.index(selected_prompt) + 1
+            import os
+            current_directory = os.getcwd()
+            
+            # Construct the directory path
+            directory_path = os.path.join("dendi", str(prompt_index))
+
+            # Check if the directory exists
+            if os.path.isdir(directory_path):
+                selected_image = random.choice(os.listdir(directory_path))
+                image_path = os.path.join("dendi", str(prompt_index), selected_image)
+                st.write(f"Selected image path: {image_path}")
+            else:
+                st.error(f"Directory does not exist: {directory_path}")
+            if image_path:
+                with open(image_path, "rb") as file:
+                    image_bytes = file.read()
+                st.image(image_bytes, caption="Generated Image")
+                st.download_button(
+                    label="Download Image",
+                    data=image_bytes,
+                    file_name="generated_image.png",
+                    mime="image/png"
+                )
+            else:
+                st.error("Image generation failed.")
+    else:
+        prompt = st.text_input("Enter your prompt")
+        generate_clicked = st.button("Generate Image")
+
+        if 'image_bytes' not in st.session_state:
+            st.session_state.image_bytes = None
+
+        if generate_clicked and prompt:
+            st.session_state.image_bytes = translate_and_generate_image(prompt, language, size)
+
+        if st.session_state.image_bytes:
+            st.image(st.session_state.image_bytes, caption="Generated Image")
+            st.download_button(
+                label="Download Image",
+                data=st.session_state.image_bytes,
+                file_name="generated_image.png",
+                mime="image/png"
+            )
+
+        # Add reset button
+        if st.button("Reset"):
+            st.session_state.image_bytes = None
+            st.experimental_rerun()
+
+        if generate_clicked and not prompt:
+            st.error("Please enter a prompt to generate an image.")
