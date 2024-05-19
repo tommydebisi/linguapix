@@ -59,7 +59,7 @@ if func_option == "Video Translation":
                 processed_video_path = os.path.abspath(os.path.join("./dendi_sub", f"{video_file}_dendi.mp4"))
                 logger.info(f"Processing video at path: {processed_video_path}")
             else:
-                video_path = './"' + video_file.name + '"'
+                video_path = video_file.name
                 with open(video_path, "wb") as f:
                     f.write(video_file.getbuffer())
                 logger.info(f"Video file saved at: {video_path}")
