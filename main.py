@@ -19,6 +19,7 @@ def process_video_with_subtitles(video_path, input_lang, output_lang, dub=False)
     dub (bool): If True, the video will be dubbed in the output language.
     """
     unique_id = uuid.uuid4().hex
+    video_path = os.path.abspath(video_path)
     # Transcribe the video and create an SRT file
     audio_file_path = video_path.replace('.mp4', '.wav')  # Convert video file path to audio file path
     srt_path = video_path.replace('.mp4', '.srt')

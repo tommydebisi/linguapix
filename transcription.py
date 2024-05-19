@@ -46,6 +46,7 @@ def transcribe_and_create_srt(audio_file_path):
     Args:
     audio_file_path (str): The file path to the audio file to be transcribed.
     """
+    audio_file_path = os.path.abspath(audio_file_path)
     # Initialize the ASR pipeline
     pipe = pipeline("automatic-speech-recognition", model="neoform-ai/whisper-medium-yoruba")
     
