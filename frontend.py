@@ -4,6 +4,11 @@ from image_gen import translate_and_generate_image
 import time
 import random
 import os
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Set the page layout
 st.set_page_config(layout='wide')
@@ -51,26 +56,32 @@ if func_option == "Video Translation":
             st.write("Processing video...")
             if input_language == "English" and output_language == "Dendi":
                 time.sleep(7)
-                processed_video_path = os.path.join("/dendi_sub", f"{video_file}_dendi.mp4")
+                processed_video_path = os.path.abspath(os.path.join("./dendi_sub", f"{video_file}_dendi.mp4"))
+                logger.info(f"Processing video at path: {processed_video_path}")
             else:
                 video_path = video_file.name
                 with open(video_path, "wb") as f:
                     f.write(video_file.getbuffer())
                 processed_video_path = process_video_with_subtitles(video_path, input_language, output_language, dub)
-            
-            if processed_video_path:
+                processed_video_path = os.path.abspath(processed_video_path)
+                logger.info(f"Processed video saved at: {processed_video_path}")
+
+            if processed_video_path and os.path.exists(processed_video_path):
                 st.success("Video processing complete.")
+                logger.info(f"Video processing complete. File available at: {processed_video_path}")
                 with open(processed_video_path, "rb") as file:
                     st.download_button(
                         label="Download Processed Video",
                         data=file,
-                        file_name=processed_video_path,
+                        file_name=os.path.basename(processed_video_path),
                         mime="video/mp4"
                     )
             else:
                 st.error("Video processing failed. No output file generated.")
+                logger.error("Video processing failed. No output file generated.")
         else:
             st.error("Please upload a video to start.")
+            logger.error("No video file uploaded.")
 elif func_option == "Image Generation":
     st.write("## Generate Image")
     st.write("### Select Language and Enter Prompt")
@@ -89,20 +100,24 @@ elif func_option == "Image Generation":
             st.write("Generating image...")
             time.sleep(10)
             prompt_index = prompt_options.index(selected_prompt) + 1
-            import os
             current_directory = os.getcwd()
-            
+
             # Construct the directory path
-            directory_path = os.path.join("dendi", str(prompt_index))
+            directory_path = os.path.join(current_directory, "dendi", str(prompt_index))
+            logger.info(f"Checking for directory: {directory_path}")
 
             # Check if the directory exists
             if os.path.isdir(directory_path):
                 selected_image = random.choice(os.listdir(directory_path))
-                image_path = os.path.join("dendi", str(prompt_index), selected_image)
+                image_path = os.path.join(directory_path, selected_image)
+                logger.info(f"Selected image path: {image_path}")
                 st.write(f"Selected image path: {image_path}")
             else:
                 st.error(f"Directory does not exist: {directory_path}")
-            if image_path:
+                logger.error(f"Directory does not exist: {directory_path}")
+                image_path = None
+
+            if image_path and os.path.exists(image_path):
                 with open(image_path, "rb") as file:
                     image_bytes = file.read()
                 st.image(image_bytes, caption="Generated Image")
@@ -114,6 +129,7 @@ elif func_option == "Image Generation":
                 )
             else:
                 st.error("Image generation failed.")
+                logger.error("Image generation failed. No output file generated.")
     else:
         prompt = st.text_input("Enter your prompt")
         generate_clicked = st.button("Generate Image")
@@ -123,6 +139,7 @@ elif func_option == "Image Generation":
 
         if generate_clicked and prompt:
             st.session_state.image_bytes = translate_and_generate_image(prompt, language, size)
+            logger.info(f"Image generated for prompt: {prompt}")
 
         if st.session_state.image_bytes:
             st.image(st.session_state.image_bytes, caption="Generated Image")
@@ -140,3 +157,4 @@ elif func_option == "Image Generation":
 
         if generate_clicked and not prompt:
             st.error("Please enter a prompt to generate an image.")
+            logger.error("No prompt entered for image generation.")
