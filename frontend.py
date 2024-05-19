@@ -63,7 +63,6 @@ if func_option == "Video Translation":
                 with open(video_path, "wb") as f:
                     f.write(video_file.getbuffer())
                 processed_video_path = process_video_with_subtitles(video_path, input_language, output_language, dub)
-                processed_video_path = os.path.abspath(processed_video_path)
                 logger.info(f"Processed video saved at: {processed_video_path}")
 
             if processed_video_path and os.path.exists(processed_video_path):
