@@ -1,6 +1,6 @@
 # Linguapix App - Sustainability and Cultural Heritage with AI
 ## Live Demo
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://linguapix-wgxkmipahjxrj3qppizqgb.streamlit.app/)
+[STREAMLIT App](https://linguapix-wgxkmipahjxrj3qppizqgb.streamlit.app/)
 
 ## Introduction
 Welcome to the Linguapix App! Our mission is to bridge linguistic gaps by providing seamless translation and subtitling services for videos from international languages such as French and English to local Benin languages, including Yoruba, Fon, and Dendi. We leverage advanced AI models to ensure our translations are accurate and culturally relevant. Additionally, our app offers image generation capabilities in native languages and integrates video dubbing functionality, allowing users to replace audio tracks with localized content. Through these features, we aim to promote inclusivity and accessibility by making digital content more accessible to diverse linguistic communities in Benin.
