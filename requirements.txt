@@ -2,3 +2,5 @@ modernmt
 transformers
 streamlit
 ffmpeg-python
+torch
+tensorflow
