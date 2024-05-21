@@ -4,3 +4,4 @@ streamlit
 ffmpeg-python
 torch
 tensorflow
+tf-keras
